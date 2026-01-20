@@ -98,10 +98,18 @@ VNI_MAPPING = {
 def load_data():
     """Load data directly from Google Drive"""
     try:
-        credentials = service_account.Credentials.from_service_account_file(
-            CREDENTIALS_FILE, 
-            scopes=['https://www.googleapis.com/auth/drive.readonly']
-        )
+        # Check if running on Streamlit Cloud with secrets
+        if 'gcp_service_account' in st.secrets:
+            credentials = service_account.Credentials.from_service_account_info(
+                st.secrets["gcp_service_account"],
+                scopes=['https://www.googleapis.com/auth/drive.readonly']
+            )
+        else:
+            # Local fallback
+            credentials = service_account.Credentials.from_service_account_file(
+                CREDENTIALS_FILE, 
+                scopes=['https://www.googleapis.com/auth/drive.readonly']
+            )
         service = build('drive', 'v3', credentials=credentials)
         
         # Download file to memory
