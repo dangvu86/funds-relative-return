@@ -98,18 +98,10 @@ VNI_MAPPING = {
 def load_data():
     """Load data directly from Google Drive"""
     try:
-        # Check if running on Streamlit Cloud with secrets
-        if 'gcp_service_account' in st.secrets:
-            credentials = service_account.Credentials.from_service_account_info(
-                st.secrets["gcp_service_account"],
-                scopes=['https://www.googleapis.com/auth/drive.readonly']
-            )
-        else:
-            # Local fallback
-            credentials = service_account.Credentials.from_service_account_file(
-                CREDENTIALS_FILE, 
-                scopes=['https://www.googleapis.com/auth/drive.readonly']
-            )
+        credentials = service_account.Credentials.from_service_account_file(
+            CREDENTIALS_FILE, 
+            scopes=['https://www.googleapis.com/auth/drive.readonly']
+        )
         service = build('drive', 'v3', credentials=credentials)
         
         # Download file to memory
@@ -435,7 +427,16 @@ def main():
 
     # ============ PORTFOLIO POSITIONING ============
     st.markdown("---")
-    st.header("⚡ Portfolio Positioning vs VNIndex")
+    
+    # Get report date
+    report_date_str = ""
+    if df_holdings is not None and not df_holdings.empty and 'ReportDate' in df_holdings.columns:
+        # Assuming all rows have the same report date, take the first one
+        r_date = df_holdings['ReportDate'].iloc[0]
+        if pd.notna(r_date):
+            report_date_str = f" (Data date: {r_date})"
+            
+    st.header(f"⚡ Portfolio Positioning vs VNIndex{report_date_str}")
     
     # Process positioning data
     if df_holdings is not None and not df_holdings.empty:
