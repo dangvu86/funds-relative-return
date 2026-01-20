@@ -98,10 +98,30 @@ VNI_MAPPING = {
 def load_data():
     """Load data directly from Google Drive"""
     try:
-        credentials = service_account.Credentials.from_service_account_file(
-            CREDENTIALS_FILE, 
-            scopes=['https://www.googleapis.com/auth/drive.readonly']
-        )
+        # Check if running on Streamlit Cloud with secrets
+        if 'gcp_service_account' in st.secrets:
+            # Case 1: Standard TOML with [gcp_service_account] section
+            credentials = service_account.Credentials.from_service_account_info(
+                st.secrets["gcp_service_account"],
+                scopes=['https://www.googleapis.com/auth/drive.readonly']
+            )
+        elif 'type' in st.secrets and st.secrets['type'] == 'service_account':
+             # Case 2: Direct JSON pasted without section header
+            credentials = service_account.Credentials.from_service_account_info(
+                st.secrets,
+                scopes=['https://www.googleapis.com/auth/drive.readonly']
+            )
+        else:
+            # Local fallback (only if file exists)
+            import os
+            if os.path.exists(CREDENTIALS_FILE):
+                credentials = service_account.Credentials.from_service_account_file(
+                    CREDENTIALS_FILE, 
+                    scopes=['https://www.googleapis.com/auth/drive.readonly']
+                )
+            else:
+                 st.error("Credentials not found in Secrets or local file.")
+                 return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
         service = build('drive', 'v3', credentials=credentials)
         
         # Download file to memory
