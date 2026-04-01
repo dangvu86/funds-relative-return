@@ -418,7 +418,7 @@ def main():
                     return 'color: #EF4444; font-weight: 500'
             return ''
         
-        styled_df = display_df.style.applymap(
+        styled_df = display_df.style.map(
             color_values, 
             subset=['Daily Return (%)', 'Cumulative (%)', 'VNI Cum (%)', 'vs VNI (%)', 'Small vs Big (%)']
         ).format({
